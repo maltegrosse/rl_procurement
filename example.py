@@ -71,7 +71,10 @@ def run_rl():
             # Action/Feedback
             action = agent.act(observation, reward, done)
             observation, reward, _, _ = env.step(action)
+        env.plot(j)
+
         env.reset()
+
 
 if __name__ == "__main__":
     print("Start Procurement RL")

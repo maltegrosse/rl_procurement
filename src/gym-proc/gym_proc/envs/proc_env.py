@@ -1,3 +1,4 @@
+import copy
 import datetime
 from datetime import date, timedelta
 
@@ -5,7 +6,7 @@ import gym
 import numpy as np
 from gym.utils import seeding
 from gym.vector.utils import spaces
-
+import matplotlib.pyplot as plt
 
 class ProcurementEnv(gym.Env):
     metadata = {
@@ -15,6 +16,7 @@ class ProcurementEnv(gym.Env):
     orders = []
     products = []
     procurements = []
+    stock_history=[]
     start_date = None
     current_date = None
     end_date = None
@@ -41,7 +43,7 @@ class ProcurementEnv(gym.Env):
                                        shape=(len(products), self.get_max_product_range()),
                                        dtype=np.int)  # products x order amounts
         self.observation_space = spaces.Box(low=0.0, high=self.get_max_product_order_amount(),
-                                            shape=((end_date - start_date).days, len(products)),
+                                            shape=((end_date - start_date).days, len(products), 1),
                                             # matrix of days, products, amount
                                             dtype=np.int)
         stock = {}
@@ -117,6 +119,8 @@ class ProcurementEnv(gym.Env):
         self.current_date = self.current_date + timedelta(days=1)
 
         self.state = (self.current_date, self.stock)
+        # keep track of stock (use copy to avoid getting the same object)
+        self.stock_history.append(copy.deepcopy(self.state))
         return self.state, reward, False, {}
     def example_reward(self,stock=None, action=None, current_date = None, products=None, orders=None, procurements=None):
         out = 0
@@ -129,8 +133,12 @@ class ProcurementEnv(gym.Env):
     def reset(self):
         self.kill = False
         self.current_date = self.start_date
+        stock = {}
+        for p in self.products:
+            stock[p.get_id()] = p.get_initial_stock()
+        self.stock = stock
         self.state = (self.current_date, self.stock)
-
+        self.stock_history=[]
         return self.state
 
     def done(self):
@@ -138,6 +146,29 @@ class ProcurementEnv(gym.Env):
             return False
         return self.current_date < self.end_date
 
+    def plot(self, step=None):
+        fig = plt.figure()
+        ax = plt.axes()
+        x_days = []
+        product_stock = {}
+        for d in self.stock_history:
+            x_days.append(d[0])
+            for k,v in d[1].items():
+
+                if k in product_stock:
+                    product_stock[k].append(v)
+                else:
+                     product_stock[k]= [v]
+        for p in self.products:
+            plt.plot(x_days, product_stock[p.get_id()])
+
+        ax.tick_params(axis='x', rotation=45)
+        fig.suptitle('Inventory Step '+str(step), fontsize=14)
+        plt.xlabel('Date', fontsize=8)
+        plt.ylabel('Stock', fontsize=8)
+        plt.tight_layout()
+
+        plt.show()
 
 class Product(object):
     _id = None

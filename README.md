@@ -11,6 +11,7 @@ Clone/Download Repository and execute example.py
 ## Requirements
 - Python 3.6+
 - Gym 0.18.0
+- Matplotlib 3.4+
 
 ## License
 **[MIT license](http://opensource.org/licenses/mit-license.php)**
