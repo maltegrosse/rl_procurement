@@ -35,6 +35,11 @@ class RandomAgent(object):
 
     def act(self, observation, reward, done):
         return self.action_space.sample()
+def custom_reward_function(stock=None, action=None, current_date = None, products=None, orders=None, procurements=None):
+    out = 0
+    for key in stock:
+        out += stock[key]
+    return out * 1
 # Example how to run the environment
 def run_rl():
     # init some sample orders and products
@@ -48,7 +53,7 @@ def run_rl():
     # or generate dummy data
     #         start_date, end_date, products, orders = generate_dummy_data(datetime.date(2021, 1, 1), 90, 5,10)
     env = gym.make("Procurement-v0", orders=orders, products=products,
-                   start_date=start_date, end_date=end_date)
+                   start_date=start_date, end_date=end_date, reward_function=custom_reward_function)
 
     seed = 0
     env.seed(seed)

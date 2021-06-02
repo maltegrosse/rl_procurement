@@ -21,9 +21,12 @@ class ProcurementEnv(gym.Env):
     stock_policy = {}
     debug = False
     kill = False
+    reward_function=None
 
-    def __init__(self, orders, products, start_date, end_date, stock_policy=None, debug=True):
-
+    def __init__(self, orders, products, start_date, end_date, stock_policy=None, debug=True, reward_function=None):
+        if reward_function:
+            self.reward_function = reward_function
+        else: self.reward_function = self.example_reward
         self.orders = orders
         self.products = products
         self.start_date = start_date
@@ -105,7 +108,7 @@ class ProcurementEnv(gym.Env):
                         print("handle procurement", p)
                     self.stock[i] += items[i]
 
-        reward = self.calculate_reward(self.stock)
+        reward = self.calculate_reward(self.reward_function(stock=self.stock, action=action, current_date=self.current_date,products=self.products, orders=self.orders, procurements=self.procurements))
         if self.debug:
             print("date", self.current_date)
             print("stock", self.stock)
@@ -115,12 +118,13 @@ class ProcurementEnv(gym.Env):
 
         self.state = (self.current_date, self.stock)
         return self.state, reward, False, {}
-
-    def calculate_reward(self, stock):
+    def example_reward(self,stock=None, action=None, current_date = None, products=None, orders=None, procurements=None):
         out = 0
         for key in stock:
             out += stock[key]
         return out * -1
+    def calculate_reward(self, func):
+        return func
 
     def reset(self):
         self.kill = False
