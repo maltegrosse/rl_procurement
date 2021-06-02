@@ -13,14 +13,13 @@ import gym
 import gym_proc
 from gym_proc.envs import Order, Procurement, Product
 
-
+# Method to generate dummy input data
 def generate_dummy_data(start_date, amount_days, amount_products, amount_orders):
     end_date = start_date + datetime.timedelta(days=amount_days)
     products = []
     for i in range(0, amount_products):
-        # id, max_order_amount, deliver_days, inital_stock
+        # id, max_order_amount, deliver_days, initial_stock
         products.append(Product("prod" + str(i), random.randrange(10, 100), 0, random.randrange(10, 100)))
-
     orders = []
     for i in range(0, amount_orders):
         # id, customer_id, delivery_date, created_date, items
@@ -28,16 +27,15 @@ def generate_dummy_data(start_date, amount_days, amount_products, amount_orders)
         orders.append(Order('ord'+str(i), 'C'+str(i), d, d, {'prod'+str(random.randrange(0, amount_products)): random.randrange(50, 100)}))
     return start_date, end_date, products, orders
 
-
+# A simple Random Agent
 class RandomAgent(object):
-
     def __init__(self, action_space):
         self.name = "Random Agent"
         self.action_space = action_space
 
     def act(self, observation, reward, done):
         return self.action_space.sample()
-
+# Example how to run the environment
 def run_rl():
     # init some sample orders and products
     orders = [Order('ord01', 'C01', datetime.date(2021, 10, 6), datetime.date(2021, 10, 6), {'prod01': 50}),
