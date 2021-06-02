@@ -2,10 +2,6 @@ import time as t
 import datetime
 import os, sys
 import random
-from datetime import time, date
-
-import numpy as np
-import pandas as pd
 
 file_path = 'src/gym-proc/'
 sys.path.append(os.path.dirname(file_path))
@@ -35,6 +31,7 @@ class RandomAgent(object):
 
     def act(self, observation, reward, done):
         return self.action_space.sample()
+# example for custom reward function
 def custom_reward_function(stock=None, action=None, current_date = None, products=None, orders=None, procurements=None):
     out = 0
     for key in stock:
@@ -65,7 +62,7 @@ def run_rl():
     env.scenario_name = agent.name
     observation = env.reset()
     episodes = 1
-
+    # Run the environment
     for j in range(episodes):
         while env.done():
             # Action/Feedback
@@ -79,7 +76,5 @@ def run_rl():
 if __name__ == "__main__":
     print("Start Procurement RL")
     startTime = t.time()
-
     run_rl()
-
     print('process done in {0} seconds'.format(t.time() - startTime))

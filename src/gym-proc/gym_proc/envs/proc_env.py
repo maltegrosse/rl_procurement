@@ -9,23 +9,59 @@ from gym.vector.utils import spaces
 import matplotlib.pyplot as plt
 
 class ProcurementEnv(gym.Env):
+    """
+    Procurement Environment for Gym
+    """
     metadata = {
         'render.modes': ['human']
     }
+    # Dictonary of current stock(int) per product id (string)
     stock = {}
+    # see Orders
     orders = []
+    # see Products
     products = []
+    # see Procurements
     procurements = []
+    # track stock by adding the state per day
     stock_history=[]
+    # start date of the environment
     start_date = None
+    # iterative date of the environment
     current_date = None
+    # start date of the environment
     end_date = None
+    # tbd
     stock_policy = {}
+    # see init
     debug = False
+    # stock below threshold kills the environment run
     kill = False
+    # allowing external reward function, see init
     reward_function=None
 
     def __init__(self, orders, products, start_date, end_date, stock_policy=None, debug=True, reward_function=None):
+        """
+       init the env by using env = gym.make("Procurement-v0" ....)
+
+        :param orders: Array of orders
+        :type orders: []Order (see class Order)
+        :param products: Array of products define the initial stock
+        :type products: []Product (see class Product)
+        :param start_date: Start date of the env
+        :type datetime
+        :param end_date: End date of the env
+        :type datetime
+        :param stock_policy: Custom stock policy
+        :type dict
+        :param debug: enable console prints
+        :type bool
+        :param reward_function: custom reward function - see example_reward function
+        :type function
+
+       :return: env
+       """
+
         if reward_function:
             self.reward_function = reward_function
         else: self.reward_function = self.example_reward
@@ -55,6 +91,10 @@ class ProcurementEnv(gym.Env):
             print("init finished")
 
     def get_max_product_range(self):
+        """
+        Returns max of product range
+        :return amount int
+        """
         out = 0
         for p in self.products:
             if p.get_max_order_range() > out:
@@ -62,6 +102,10 @@ class ProcurementEnv(gym.Env):
         return out
 
     def get_max_product_order_amount(self):
+        """
+        Returns max order amount (tbd remove?)
+        :return amount int
+        """
         out = 0
         for p in self.products:
             if p.max_order_amount() > out:
@@ -72,8 +116,8 @@ class ProcurementEnv(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    ## action
-    def step(self, action):
+
+    def step(self, action): # pragma: no cover
         self.current_date, self.stock = self.state
 
         # Handle Orders (- Stock)
@@ -109,7 +153,7 @@ class ProcurementEnv(gym.Env):
                     if self.debug:
                         print("handle procurement", p)
                     self.stock[i] += items[i]
-
+        # use custom reward function
         reward = self.calculate_reward(self.reward_function(stock=self.stock, action=action, current_date=self.current_date,products=self.products, orders=self.orders, procurements=self.procurements))
         if self.debug:
             print("date", self.current_date)
@@ -122,15 +166,36 @@ class ProcurementEnv(gym.Env):
         # keep track of stock (use copy to avoid getting the same object)
         self.stock_history.append(copy.deepcopy(self.state))
         return self.state, reward, False, {}
+
     def example_reward(self,stock=None, action=None, current_date = None, products=None, orders=None, procurements=None):
+        """
+        example for custom reward function
+
+       :param stock: current stock
+       :type Dictonary of current stock(int) per product id (string)
+       :param action: see action space
+       :param current_date: current date of the env
+       :type datetime
+
+       :param products: current products
+       :type []Product
+       :param orders: current orders
+       :type []Order
+       :param procurements: current procurements
+       :type []Procurement
+
+      :return: reward as int
+      """
+
         out = 0
         for key in stock:
             out += stock[key]
         return out * -1
-    def calculate_reward(self, func):
+
+    def calculate_reward(self, func): # wrapper for custom reward functions
         return func
 
-    def reset(self):
+    def reset(self): # pragma: no cover
         self.kill = False
         self.current_date = self.start_date
         stock = {}
@@ -141,12 +206,12 @@ class ProcurementEnv(gym.Env):
         self.stock_history=[]
         return self.state
 
-    def done(self):
+    def done(self): # pragma: no cover
         if self.kill:
             return False
         return self.current_date < self.end_date
 
-    def plot(self, step=None):
+    def plot(self, step=None): # pragma: no cover
         fig = plt.figure()
         ax = plt.axes()
         x_days = []
@@ -160,17 +225,21 @@ class ProcurementEnv(gym.Env):
                 else:
                      product_stock[k]= [v]
         for p in self.products:
-            plt.plot(x_days, product_stock[p.get_id()])
+            plt.plot(x_days, product_stock[p.get_id()],label=p.get_id())
 
         ax.tick_params(axis='x', rotation=45)
         fig.suptitle('Inventory Step '+str(step), fontsize=14)
         plt.xlabel('Date', fontsize=8)
         plt.ylabel('Stock', fontsize=8)
+        plt.legend(loc="upper left")
         plt.tight_layout()
 
         plt.show()
 
 class Product(object):
+    """
+      Simple Product for the env
+    """
     _id = None
     _max_order_range = [0]
     _max_order_amount = 0
@@ -206,6 +275,9 @@ class Product(object):
 
 
 class Transaction(object):
+    """
+  Mother Class for Procurement and Order
+    """
     _id = None
     _created_date = None
     _items = {}
@@ -226,6 +298,9 @@ class Transaction(object):
 
 
 class Procurement(Transaction):
+    """
+    Procurement
+    """
     _supplier_id = None
     _delivery_date = None
 
@@ -251,6 +326,9 @@ class Procurement(Transaction):
 
 
 class Order(Transaction):
+    """
+    Order
+    """
     _customer_id = None
     _delivery_date = None
 
