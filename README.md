@@ -16,6 +16,24 @@ Clone/Download Repository and execute `example.py`
 ## Example Plot
 Example: Stock with random agent over one episode:
 ![plot](rl-plot.jpg)
+
+## Further Ideas
+Functionality
+- Extended Reward Function
+- Different Order/Deliver Date
+- Add different bulk order prices to Products
+- volatile market pricing  
+- Different Manufacturer
+- Customer/Supplier Policies
+- Different Pricing per Product/Customer/Supplier
+- Expiration day for stock
+- additional agents (Q-Learning, Greedy etc...)
+Technology
+- add Numpy/Pandas to improve performance
+- publish on pip
+  
+
+
 ## License
 **[MIT license](http://opensource.org/licenses/mit-license.php)**
 
